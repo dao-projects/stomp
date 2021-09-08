@@ -1,0 +1,32 @@
+{
+  "name": "@daoxin/stomp",
+  "version": "0.0.2",
+  "description": "一款基于stomp、websocket封装实现库",
+  "directories": {
+    "lib": "lib"
+  },
+  "main": "lib/index.js",
+  "scripts": {
+    "push": "npm publish --access=public",
+    "build": "webpack --mode production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dao-projects/stomp.git"
+  },
+  "keywords": [
+    "websocket",
+    "typescript"
+  ],
+  "author": "daoxin",
+  "license": "Apache License",
+  "bugs": {
+    "url": "https://github.com/dao-projects/stomp/issues"
+  },
+  "homepage": "https://github.com/dao-projects/stomp#readme",
+  "devDependencies": {
+    "@babel/core": "^7.15.0",
+    "@babel/preset-env": "^7.15.0",
+    "babel-loader": "^8.2.2"
+  }
+}
