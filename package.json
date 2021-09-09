@@ -1,6 +1,6 @@
 {
   "name": "@daoxin/stomp",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "一款基于stomp、websocket封装实现库",
   "directories": {
     "lib": "lib"

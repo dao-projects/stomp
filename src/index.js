@@ -183,7 +183,7 @@ class Client {
             if (typeof this.debug === "function") {
                 this.debug("send PING every " + ttl + "ms");
             }
-            this.pinger = Stomp.setInterval(ttl, (function(_this) {
+            this.pinger = setInterval(ttl, (function(_this) {
                 return function() {
                     _this.ws.send(Byte.LF);
                     return typeof _this.debug === "function" ? _this.debug(">>> PING") : void 0;
@@ -195,7 +195,7 @@ class Client {
             if (typeof this.debug === "function") {
                 this.debug("check PONG every " + ttl + "ms");
             }
-            return (this.ponger = Stomp.setInterval(ttl, (function(_this) {
+            return (this.ponger = setInterval(ttl, (function(_this) {
                 return function() {
                     let delta;
                     delta = Client.now() - _this.serverActivity;
@@ -363,10 +363,10 @@ class Client {
     _cleanUp() {
         this.connected = false;
         if (this.pinger) {
-            Stomp.clearInterval(this.pinger);
+            clearInterval(this.pinger);
         }
         if (this.ponger) {
-            return Stomp.clearInterval(this.ponger);
+            return clearInterval(this.ponger);
         }
     }
     send(destination, headers, body) {
