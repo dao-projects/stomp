@@ -2,8 +2,37 @@ const __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
     Byte = {
         LF: "\x0A",
-        NULL: "\x00",
+        NULL: "\x00"
     };
+const Stomp = {
+    VERSIONS: {
+        V1_0: "1.0",
+        V1_1: "1.1",
+        V1_2: "1.2",
+        supportedVersions: function() {
+            return "1.1,1.0";
+        }
+    },
+    client: function(url, protocols) {
+        var klass, ws;
+        if (protocols == null) {
+            protocols = ["v10.stomp", "v11.stomp"];
+        }
+        klass = Stomp.WebSocketClass || WebSocket;
+        ws = new klass(url, protocols);
+        return new Client(ws);
+    },
+    over: function(ws) {
+        return new Client(ws);
+    },
+    Frame: Frame,
+    setInterval: (interval, f) => {
+        return setInterval(f, interval);
+    },
+    clearInterval: (id) => {
+        return clearInterval(id);
+    }
+};
 class Frame {
     constructor(command, headers, body) {
         this.command = command;
@@ -22,7 +51,7 @@ class Frame {
         frames = datas.split(RegExp("" + Byte.NULL + Byte.LF + "*"));
         r = {
             frames: [],
-            partial: "",
+            partial: ""
         };
         r.frames = (function() {
             var _i, _len, _ref, _results;
@@ -46,7 +75,7 @@ class Frame {
         let frame,
             Byte = {
                 LF: "\x0A",
-                NULL: "\x00",
+                NULL: "\x00"
             };
         frame = new Frame(command, headers, body);
         return frame.toString() + Byte.NULL;
@@ -71,23 +100,7 @@ class Frame {
         return lines.join(Byte.LF);
     }
     static unmarshallSingle(data) {
-        var body,
-            chr,
-            command,
-            divider,
-            headerLines,
-            headers,
-            i,
-            idx,
-            len,
-            line,
-            start,
-            trim,
-            _i,
-            _j,
-            _len,
-            _ref,
-            _ref1;
+        var body, chr, command, divider, headerLines, headers, i, idx, len, line, start, trim, _i, _j, _len, _ref, _ref1;
         divider = data.search(RegExp("" + Byte.LF + Byte.LF));
         headerLines = data.substring(0, divider).split(Byte.LF);
         command = headerLines.shift();
@@ -127,7 +140,7 @@ class Client {
         this.connected = false;
         this.heartbeat = {
             outgoing: 10000,
-            incoming: 10000,
+            incoming: 10000
         };
         this.maxWebSocketFrameSize = 16 * 1024;
         this.subscriptions = {};
@@ -142,7 +155,7 @@ class Client {
     }
     debug(message) {
         var _ref;
-        return typeof window !== "undefined" && window !== null ? (_ref = window.console) != null ? _ref.log(message) : void 0 : void 0;
+        return typeof window !== "undefined" && window !== null ? ((_ref = window.console) != null ? _ref.log(message) : void 0) : void 0;
     }
     _transmit(command, headers, body) {
         let out;
@@ -164,8 +177,7 @@ class Client {
     }
     _setupHeartbeat(headers) {
         let serverIncoming, serverOutgoing, ttl, v, _ref, _ref1;
-        if (
-            (_ref = headers.version) !== Stomp.VERSIONS.V1_1 && _ref !== Stomp.VERSIONS.V1_2) {
+        if ((_ref = headers.version) !== Stomp.VERSIONS.V1_1 && _ref !== Stomp.VERSIONS.V1_2) {
             return;
         }
         (_ref1 = (function() {
@@ -183,7 +195,7 @@ class Client {
             if (typeof this.debug === "function") {
                 this.debug("send PING every " + ttl + "ms");
             }
-            this.pinger = setInterval(ttl, (function(_this) {
+            this.pinger = Stomp.setInterval(ttl, (function(_this) {
                 return function() {
                     _this.ws.send(Byte.LF);
                     return typeof _this.debug === "function" ? _this.debug(">>> PING") : void 0;
@@ -195,7 +207,7 @@ class Client {
             if (typeof this.debug === "function") {
                 this.debug("check PONG every " + ttl + "ms");
             }
-            return (this.ponger = setInterval(ttl, (function(_this) {
+            return (this.ponger = Stomp.setInterval(ttl, (function(_this) {
                 return function() {
                     let delta;
                     delta = Client.now() - _this.serverActivity;
@@ -242,19 +254,7 @@ class Client {
         }
         this.ws.onmessage = (function(_this) {
             return function(evt) {
-                var arr,
-                    c,
-                    client,
-                    data,
-                    frame,
-                    messageID,
-                    onreceive,
-                    subscription,
-                    unmarshalledData,
-                    _i,
-                    _len,
-                    _ref,
-                    _results;
+                var arr, c, client, data, frame, messageID, onreceive, subscription, unmarshalledData, _i, _len, _ref, _results;
                 data = typeof ArrayBuffer !== "undefined" && evt.data instanceof ArrayBuffer ? ((arr = new Uint8Array(evt.data)), typeof _this.debug === "function" ? _this.debug("--- got data length: " + arr.length) : void 0, (function() {
                     var _i, _len, _results;
                     _results = [];
@@ -342,10 +342,7 @@ class Client {
                     _this.debug("Web Socket Opened...");
                 }
                 headers["accept-version"] = Stomp.VERSIONS.supportedVersions();
-                headers["heart-beat"] = [
-                    _this.heartbeat.outgoing,
-                    _this.heartbeat.incoming,
-                ].join(",");
+                headers["heart-beat"] = [_this.heartbeat.outgoing, _this.heartbeat.incoming].join(",");
                 return _this._transmit("CONNECT", headers);
             };
         })(this));
@@ -395,20 +392,20 @@ class Client {
             id: headers.id,
             unsubscribe: function() {
                 return client.unsubscribe(headers.id);
-            },
+            }
         };
     }
     unsubscribe(id) {
         delete this.subscriptions[id];
         return this._transmit("UNSUBSCRIBE", {
-            id: id,
+            id: id
         });
     }
     begin(transaction) {
         var client, txid;
         txid = transaction || "tx-" + this.counter++;
         this._transmit("BEGIN", {
-            transaction: txid,
+            transaction: txid
         });
         client = this;
         return {
@@ -418,17 +415,17 @@ class Client {
             },
             abort: function() {
                 return client.abort(txid);
-            },
+            }
         };
     }
     commit(transaction) {
         return this._transmit("COMMIT", {
-            transaction: transaction,
+            transaction: transaction
         });
     }
     abort(transaction) {
         return this._transmit("ABORT", {
-            transaction: transaction,
+            transaction: transaction
         });
     }
     ack(messageID, subscription, headers) {
@@ -448,27 +445,4 @@ class Client {
         return this._transmit("NACK", headers);
     }
 }
-const Stomp = {
-    VERSIONS: {
-        V1_0: "1.0",
-        V1_1: "1.1",
-        V1_2: "1.2",
-        supportedVersions: function() {
-            return "1.1,1.0";
-        },
-    },
-    client: function(url, protocols) {
-        var klass, ws;
-        if (protocols == null) {
-            protocols = ["v10.stomp", "v11.stomp"];
-        }
-        klass = Stomp.WebSocketClass || WebSocket;
-        ws = new klass(url, protocols);
-        return new Client(ws);
-    },
-    over: function(ws) {
-        return new Client(ws);
-    },
-    Frame: Frame,
-};
-export default Stomp
+export default Stomp;
